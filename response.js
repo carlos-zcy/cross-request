@@ -391,7 +391,7 @@ async function sendAjaxByBack(id, req, successFn, errorFn) {
                 console.log('正在获取七牛云中文件的url')
                 for (var name in req.files) {
                     let bodyData = req.files_url
-                    let file_url = await get('http://192.168.2.224:9999/upload_download?file_name=', bodyData)
+                    let file_url = await get('http://118.190.45.99:8081/upload_download?file_name=', bodyData)
                     console.log(JSON.parse(file_url.res).file_url)
                     docUrl = JSON.parse(file_url.res).file_url
                     let QINIUfile = new Promise(function (resolve, reject) {
