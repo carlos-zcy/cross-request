@@ -1,6 +1,6 @@
 (function (win) {
 
-    if(!document.getElementById('cross-request-sign')){
+    if (!document.getElementById('cross-request-sign')) {
         return;
     }
 
@@ -12,6 +12,7 @@
     var ENDSTATUS = 2;
 
     var base64 = _base64();
+
     function encode(data) {
         return base64.encode(encodeURIComponent(JSON.stringify(data)));
     }
@@ -169,6 +170,7 @@
         'Upgrade',
         'User-Agent',
         'Via'];
+
     /*==============common end=================*/
 
 
@@ -189,7 +191,10 @@
     }
 
 
-    var yRequestDom = createNode('div', { id: container, style: 'display:none' }, document.getElementsByTagName('body')[0]);
+    var yRequestDom = createNode('div', {
+        id: container,
+        style: 'display:none'
+    }, document.getElementsByTagName('body')[0]);
     var yRequestMap = {};
     var id = 0;
     var interval;
@@ -197,7 +202,7 @@
 
     function run(req) {
         if (!req) return;
-        if (typeof req === 'string') req = { url: req }
+        if (typeof req === 'string') req = {url: req}
 
         data = {
             res: null,
@@ -226,7 +231,6 @@
         }
         monitor();
     }
-
 
 
     function monitor() {

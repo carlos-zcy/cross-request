@@ -5,6 +5,7 @@ var RUNSTATUS = 1;
 var ENDSTATUS = 2;
 
 var base64 = _base64();
+
 function encode(data) {
     return base64.encode(encodeURIComponent(JSON.stringify(data)));
 }
@@ -14,7 +15,7 @@ function decode(data) {
 }
 
 function formUrlencode(data) {
-    if(!data || typeof data !== 'object') return ''
+    if (!data || typeof data !== 'object') return ''
     return Object.keys(data).map(function (key) {
         return encodeURIComponent(key) + '=' + encodeURIComponent(data[key]);
     }).join('&')
@@ -148,29 +149,29 @@ function _base64() {
     };
 };
 
-var unsafeHeader = [ 'Accept-Charset',
-'Accept-Encoding',
-'Access-Control-Request-Headers',
-'Access-Control-Request-Method',
-'Connection',
-'Content-Length',
-'Cookie',
-'Cookie2',
-'Content-Transfer-Encoding',
-'Date',
-'Expect',
-'Host',
-'Keep-Alive',
-'Origin',
-'Referer',
-'TE',
-'Trailer',
-'Transfer-Encoding',
-'Upgrade',
-'User-Agent',
-'Via' ];
+var unsafeHeader = ['Accept-Charset',
+    'Accept-Encoding',
+    'Access-Control-Request-Headers',
+    'Access-Control-Request-Method',
+    'Connection',
+    'Content-Length',
+    'Cookie',
+    'Cookie2',
+    'Content-Transfer-Encoding',
+    'Date',
+    'Expect',
+    'Host',
+    'Keep-Alive',
+    'Origin',
+    'Referer',
+    'TE',
+    'Trailer',
+    'Transfer-Encoding',
+    'Upgrade',
+    'User-Agent',
+    'Via'];
 /*==============common end=================*/
-var connect = chrome.runtime.connect({ name: "request" });
+var connect = chrome.runtime.connect({name: "request"});
 
 function injectJs(path) {
     var s = document.createElement('script');
@@ -264,8 +265,8 @@ function sendAjaxByContent(req, successFn, errorFn) {
         if (req.file) {
             req.data = document.getElementById(req.file).files[0];
         }
-    }else{
-      delete req.headers['Content-Type'];
+    } else {
+        delete req.headers['Content-Type'];
     }
     if (req.query && typeof req.query === 'object') {
         var getUrl = formUrlencode(req.query);
@@ -277,16 +278,16 @@ function sendAjaxByContent(req, successFn, errorFn) {
     if (req.headers) {
         var unsafeHeaderArr = [];
         for (var name in req.headers) {
-            if(unsafeHeader.indexOf(name) > -1){
+            if (unsafeHeader.indexOf(name) > -1) {
                 unsafeHeaderArr.push({
                     name: name,
                     value: req.headers[name]
                 })
-            }else{
+            } else {
                 xhr.setRequestHeader(name, req.headers[name]);
-            }		
+            }
         }
-        if(unsafeHeaderArr.length > 0){
+        if (unsafeHeaderArr.length > 0) {
             xhr.setRequestHeader('cross-request-unsafe-headers-list', encode(unsafeHeaderArr));
         }
     }
@@ -297,10 +298,10 @@ function sendAjaxByContent(req, successFn, errorFn) {
         var headers = xhr.getAllResponseHeaders();
         headers = handleHeader(headers);
         var newHeaders;
-        if(headers['cross-response-unsafe-headers-list']){
+        if (headers['cross-response-unsafe-headers-list']) {
             newHeaders = decode(headers['cross-response-unsafe-headers-list'])
             delete headers['cross-response-unsafe-headers-list'];
-            if(newHeaders && typeof newHeaders === 'object' && Object.keys(newHeaders).length > 0){
+            if (newHeaders && typeof newHeaders === 'object' && Object.keys(newHeaders).length > 0) {
                 headers = newHeaders;
             }
         }
@@ -326,7 +327,8 @@ function sendAjaxByContent(req, successFn, errorFn) {
             body: xhr.statusText
         })
     };
-    xhr.upload.onprogress = function (e) { };
+    xhr.upload.onprogress = function (e) {
+    };
 
     try {
         xhr.send(req.data);
@@ -379,7 +381,7 @@ function run() {
                 var id = dom.getAttribute('_id');
                 data.runTime = new Date().getTime();
 
-                sendAjaxByBack(id, req, function (res) {                        
+                sendAjaxByBack(id, req, function (res) {
                     responseCallback(res, dom, data);
                 }, function (err) {
                     responseCallback(err, dom, data);
@@ -398,7 +400,7 @@ function run() {
                 //         responseCallback(err, dom, data);
                 //     })
                 // }
-                
+
 
             }
         } catch (error) {
