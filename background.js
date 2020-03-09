@@ -201,6 +201,16 @@ chrome.runtime.onMessage.addListener(function (request, _, cb) {
     }
 })
 
+
+function dataURLtoFile(dataurl, filename) {
+    var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+        bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+    while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, {type: mime});
+}
+
 function sendAjax(req, successFn, errorFn) {
     var formDatas;
     var xhr = new XMLHttpRequest();
@@ -213,7 +223,6 @@ function sendAjax(req, successFn, errorFn) {
     req.method = req.method || 'GET';
     req.async = req.async === false ? false : true;
     req.headers = req.headers || {};
-
     if (req.method.toLowerCase() !== 'get' && req.method.toLowerCase() !== 'head' && req.method.toLowerCase() !== 'options') {
         if (!req.headers['Content-Type'] || req.headers['Content-Type'].startsWith('application/x-www-form-urlencoded')) {
             req.headers['Content-Type'] = req.headers['Content-Type'] || 'application/x-www-form-urlencoded';
@@ -228,6 +237,24 @@ function sendAjax(req, successFn, errorFn) {
         var getUrl = formUrlencode(req.query);
         req.url = req.url + '?' + getUrl;
         req.query = '';
+    }
+    if (!req.headers['Content-Type'] || req.headers['Content-Type'] == 'application/x-www-form-urlencoded') {
+        req.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+        req.data = formUrlencode(req.data);
+    } else if (req.headers['Content-Type'] === 'multipart/form-data') {
+        delete req.headers['Content-Type'];
+        let formDatas = new FormData();
+        console.log(req)
+        for (var item of req.formDatas) {
+            if (item.is_file) {
+                formDatas.append(item.name, dataURLtoFile(item.value, item.fileName))
+            } else {
+                formDatas.append(item.name, item.value);
+            }
+        }
+        req.data = formDatas;
+    } else if (typeof req.data === 'object' && req.data) {
+        req.data = JSON.stringify(req.data);
     }
     xhr.open(req.method, req.url, req.async);
     var response = {};

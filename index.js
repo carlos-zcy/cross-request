@@ -237,6 +237,7 @@
         if (interval) return;
         interval = setInterval(function () {
             var queueDom = yRequestDom.childNodes;
+            console.log(queueDom.length)
             if (!queueDom || queueDom.length === 0) {
                 interval = clearInterval(interval);
             }

@@ -341,13 +341,102 @@ function sendAjaxByContent(req, successFn, errorFn) {
 
 }
 
-function sendAjaxByBack(id, req, successFn, errorFn) {
+function get(baseUrl, params) {
+    return new Promise(function (resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        url = baseUrl + params
+        xhr.open('GET', url);
+        xhr.send()
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                resolve({res: xhr.response})
+            }
+        }
+    })
+}
+
+async function sendAjaxByBack(id, req, successFn, errorFn) {
     successFns[id] = successFn;
     errorFns[id] = errorFn;
-    connect.postMessage({
-        id: id,
-        req: req
-    });
+    console.log(req)
+    if (req.headers['Content-Type'] === 'multipart/form-data') {
+        var formDatas = []
+        if (req.data) {
+            for (var name in req.data) {
+                formDatas.push({name, value: req.data[name], is_file: false});
+            }
+        }
+        if (req.files && req.files.file) {
+            let allPromise = [];
+            if (req.files.file.charAt(req.files.file.length - 1) === '0') {
+                console.log('原生上传')
+                for (var name in req.files) {
+                    let fileTransfer = new Promise(function (resolve, reject) {
+                        var files = document.getElementById(req.files[name]).files;
+                        let file = files[0]
+                        var reader = new FileReader();
+                        reader.name = name;
+                        reader.fileName = file.name;
+                        reader.onload = function () {
+                            resolve({name: this.name, value: this.result, is_file: true, fileName: this.fileName});
+                        }
+                        reader.readAsDataURL(file);
+                    })
+                    console.log(fileTransfer)
+                    allPromise.push(fileTransfer);
+                }
+            } else {
+                var docUrl = '';
+                console.log('七牛云上传')
+                console.log('正在获取七牛云中文件的url')
+                for (var name in req.files) {
+                    let bodyData = req.files_url
+                    let file_url = await get('http://192.168.2.224:9999/upload_download?file_name=', bodyData)
+                    console.log(JSON.parse(file_url.res).file_url)
+                    docUrl = JSON.parse(file_url.res).file_url
+                    let QINIUfile = new Promise(function (resolve, reject) {
+                        var xhr = new XMLHttpRequest();
+                        xhr.open('GET', docUrl, true);
+                        xhr.responseType = "blob";
+                        xhr.send(null);
+                        xhr.onreadystatechange = function () {
+                            if (xhr.readyState === 4) {
+                                let reader = new FileReader();
+                                reader.readAsDataURL(xhr.response);
+                                reader.onload = function (e) {
+                                    resolve({fileName: bodyData, is_file: true, name: name, value: e.target.result});
+                                }
+                            }
+                        }
+                    })
+                    allPromise.push(QINIUfile)
+                }
+            }
+            Promise.all(allPromise).then(function (result) {
+                formDatas = formDatas.concat(result);
+                req.formDatas = formDatas;
+                connect.postMessage({
+                    id: id,
+                    req: req,
+                });
+            })
+        } else {
+            req.formDatas = formDatas;
+            connect.postMessage({
+                id: id,
+                req: req,
+            });
+        }
+    } else {
+        connect.postMessage({
+            id: id,
+            req: req
+        });
+    }
+    // connect.postMessage({
+    //     id: id,
+    //     req: req
+    // });
 }
 
 connect.onMessage.addListener(function (msg) {
